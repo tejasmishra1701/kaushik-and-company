@@ -84,7 +84,7 @@ export default function Footer() {
       <div className="border-t border-[#1e1e1e] bg-[#050505]">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-6 py-6 sm:flex-row">
           <div className="text-xs text-silver-dim">
-            &copy; 2024 Kaushik & Company. All rights reserved.
+            &copy; 2026 Kaushik & Company. All rights reserved.
           </div>
           <a
             href={`mailto:${FIRM.email}`}

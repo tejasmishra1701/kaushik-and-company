@@ -24,21 +24,39 @@ export const FloatingNav = ({
 
   // Ref to store the timeout ID so we can clear it on subsequent scrolls
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isHovered = useRef(false);
+
+  const startHideTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      if (!isHovered.current) {
+        setVisible(false);
+      }
+    }, 1000); // 1000ms (1 second) delay. Adjust this value to your liking.
+  };
 
   useMotionValueEvent(scrollYProgress, "change", () => {
     // 1. Show the navbar whenever scrolling occurs
     setVisible(true);
 
-    // 2. Clear any existing timeout to prevent it from hiding while actively scrolling
+    // 2. Start/reset the hide timeout
+    startHideTimeout();
+  });
+
+  const handleMouseEnter = () => {
+    isHovered.current = true;
+    setVisible(true);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+  };
 
-    // 3. Set a new timeout to hide the navbar after scrolling stops
-    timeoutRef.current = setTimeout(() => {
-      setVisible(false);
-    }, 1000); // 1000ms (1 second) delay. Adjust this value to your liking.
-  });
+  const handleMouseLeave = () => {
+    isHovered.current = false;
+    startHideTimeout();
+  };
 
   // Cleanup the timeout when the component unmounts to prevent memory leaks
   useEffect(() => {
@@ -52,6 +70,8 @@ export const FloatingNav = ({
   return (
     <AnimatePresence mode="wait">
       <motion.div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         initial={{
           opacity: 1,
           y: -100,

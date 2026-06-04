@@ -155,7 +155,7 @@ export interface NavLink {
 export const NAV_LINKS: NavLink[] = [
   { label: "About", href: "#about" },
   { label: "Practice Areas", href: "#practice" },
-  { label: "Courts", href: "#courts" },
   { label: "Team", href: "#team" },
+  { label: "Courts", href: "#courts" },
   { label: "Contact", href: "#contact" }
 ];
