@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   motion,
   AnimatePresence,
@@ -22,21 +22,32 @@ export const FloatingNav = ({
   const { scrollYProgress } = useScroll();
   const [visible, setVisible] = useState(false);
 
-  useMotionValueEvent(scrollYProgress, "change", (current) => {
-    if (typeof current === "number") {
-      const direction = current - scrollYProgress.getPrevious()!;
+  // Ref to store the timeout ID so we can clear it on subsequent scrolls
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-      if (scrollYProgress.get() < 0.05) {
-        setVisible(false);
-      } else {
-        if (direction < 0) {
-          setVisible(true);
-        } else {
-          setVisible(false);
-        }
-      }
+  useMotionValueEvent(scrollYProgress, "change", () => {
+    // 1. Show the navbar whenever scrolling occurs
+    setVisible(true);
+
+    // 2. Clear any existing timeout to prevent it from hiding while actively scrolling
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
+
+    // 3. Set a new timeout to hide the navbar after scrolling stops
+    timeoutRef.current = setTimeout(() => {
+      setVisible(false);
+    }, 1000); // 1000ms (1 second) delay. Adjust this value to your liking.
   });
+
+  // Cleanup the timeout when the component unmounts to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
