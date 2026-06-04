@@ -42,7 +42,7 @@ export default function Hero() {
       {/* Layer 2.5 - Logo Watermark */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/Logo.png"
+          src="/bg.png"
           alt=""
           fill
           className="pointer-events-none select-none object-contain object-center opacity-[0.6]"
