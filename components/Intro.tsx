@@ -102,7 +102,15 @@ export default function Intro() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
+    <motion.div
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      initial={{ backgroundColor: "#0a0a0a" }}
+      animate={{
+        backgroundColor:
+          phase === "crossfade" || phase === "dark" ? "#000000" : "#0a0a0a",
+      }}
+      transition={getLogoTransition()}
+    >
       {/* LAYER 1 — Encrypt text */}
       <AnimatePresence mode="wait">
         {phase === "encrypt" && (
@@ -252,6 +260,6 @@ export default function Intro() {
         animate={{ opacity: phase === "dark" ? 1 : 0 }}
         transition={{ duration: 2, ease: "easeIn" as const }}
       />
-    </div>
+    </motion.div>
   );
 }
