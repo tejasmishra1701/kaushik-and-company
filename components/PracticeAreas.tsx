@@ -12,7 +12,7 @@ export default function PracticeAreas() {
   const getAnimProps = (delay: number) => ({
     initial: { opacity: 0, y: 20 },
     animate: isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 },
-    transition: { duration: 0.6, ease: "easeOut", delay },
+    transition: { duration: 0.6, ease: "easeOut" as const, delay },
   });
 
   const scrollContent = PRACTICE_AREAS.map((area) => ({

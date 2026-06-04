@@ -21,13 +21,13 @@ export default function Credentials() {
   const getTimelineAnimProps = (delay: number) => ({
     initial: { opacity: 0, y: 20 },
     animate: isTimelineInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 },
-    transition: { duration: 0.6, ease: "easeOut", delay },
+    transition: { duration: 0.6, ease: "easeOut" as const, delay },
   });
 
   const getCourtsAnimProps = (delay: number) => ({
     initial: { opacity: 0, y: 20 },
     animate: isCourtsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 },
-    transition: { duration: 0.6, ease: "easeOut", delay },
+    transition: { duration: 0.6, ease: "easeOut" as const, delay },
   });
 
   const timelineData = CREDENTIALS.map((cred) => ({
