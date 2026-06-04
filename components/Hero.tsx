@@ -4,17 +4,28 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { EncryptedText } from "@/components/ui/encrypted-text";
 import { FIRM } from "@/lib/content";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function Hero() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setMounted(true);
+    }, 13400);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0a]">
       {/* Layer 1 - Spotlights */}
       <Spotlight
-        className="-left-10 -top-40 md:-left-32 md:-top-20 h-[150%] w-[150%]"
+        className="-left-10 -top-40 h-[150%] w-[150%] md:-left-32 md:-top-20"
         fill="#b8b4ae"
       />
       <Spotlight
-        className="right-0 top-0 md:-right-10 h-[100%] w-[100%]"
+        className="right-0 top-0 h-[100%] w-[100%] md:-right-10"
         fill="#b8b4ae"
       />
 
@@ -27,6 +38,16 @@ export default function Hero() {
           backgroundSize: "32px 32px",
         }}
       />
+
+      {/* Layer 2.5 - Logo Watermark */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Logo.png"
+          alt=""
+          fill
+          className="pointer-events-none select-none object-contain object-center opacity-[0.6]"
+        />
+      </div>
 
       {/* Layer 3 - Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4">
@@ -47,10 +68,14 @@ export default function Hero() {
           transition={{ delay: 0.5, ease: "easeOut" }}
           className="mb-8"
         >
-          <EncryptedText
-            text={FIRM.name}
-            className="text-center font-serif text-6xl font-normal text-white md:text-8xl"
-          />
+          {!mounted ? (
+            <div className="min-h-[80px] w-full md:min-h-[120px]" />
+          ) : (
+            <EncryptedText
+              text={FIRM.name}
+              className="text-center font-serif text-6xl font-normal text-white md:text-8xl"
+            />
+          )}
         </motion.div>
 
         {/* Horizontal Rule */}
