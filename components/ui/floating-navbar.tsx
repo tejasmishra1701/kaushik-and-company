@@ -7,6 +7,7 @@ import {
   useMotionValueEvent,
 } from "motion/react";
 import { cn } from "@/lib/utils";
+import { IconLock } from "@tabler/icons-react";
 
 export const FloatingNav = ({
   navItems,
@@ -104,8 +105,20 @@ export const FloatingNav = ({
               </a>
             ))}
           </div>
+
+          {/* Divider */}
+          <div className="mx-1 h-4 w-px bg-[#2a2a2a]" />
+
+          {/* Portal Login CTA */}
+          <a
+            href="/portal/login"
+            className="flex items-center gap-1.5 rounded-full border border-[#c9a84c]/30 bg-[#c9a84c]/5 px-4 py-2 text-xs font-medium uppercase tracking-widest text-[#c9a84c] transition-all hover:border-[#c9a84c]/60 hover:bg-[#c9a84c]/10 hover:text-[#d4b060]"
+          >
+            <IconLock size={11} />
+            <span className="hidden sm:block">Client Portal</span>
+          </a>
         </div>
       </motion.div>
     </AnimatePresence>
   );
-};
+};
