@@ -47,7 +47,7 @@ export default function Credentials() {
   }));
 
   return (
-    <section id="courts">
+    <section id="timeline">
       {/* Part 1: Timeline */}
       <div className="bg-[#0a0a0a]">
         <div className="mx-auto max-w-5xl px-6 py-20" ref={timelineRef}>

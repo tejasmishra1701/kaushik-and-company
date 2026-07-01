@@ -58,7 +58,7 @@ export default function Hero() {
           transition={{ delay: 0.2, ease: "easeOut" }}
           className="mb-6 text-center text-xs uppercase tracking-widest text-silver-dim"
         >
-          Advocates & Legal Consultants &middot; Civil Lines, Gurugram
+          Advocates, Attorneys &amp; Corporate Consultants &middot; Civil Lines, Gurugram
         </motion.div>
 
         {/* Firm Name */}
@@ -93,7 +93,7 @@ export default function Hero() {
           transition={{ delay: 1.1, ease: "easeOut" }}
           className="mb-12 text-center font-serif text-sm italic text-silver-dim"
         >
-          Established 2001 &middot; Gurugram, Haryana
+          Established 2006 &middot; Gurugram, Haryana
         </motion.div>
 
         {/* Buttons */}

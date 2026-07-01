@@ -105,12 +105,7 @@ export default function ClientCaseDetailPage() {
       return;
     }
 
-    const [caseRes, docsRes, msgsRes, updatesRes] = await Promise.all([
-      supabase
-        .from("cases")
-        .select("id, title, description, status, practice_area, created_at, client_id, next_hearing_date")
-        .eq("id", id)
-        .single(),
+    const [docsRes, msgsRes, updatesRes] = await Promise.all([
       supabase
         .from("documents")
         .select("id, file_name, file_path, created_at")
@@ -128,12 +123,35 @@ export default function ClientCaseDetailPage() {
         .order("created_at", { ascending: false }),
     ]);
 
-    if (caseRes.error || caseRes.data?.client_id !== user.id) {
-      router.push("/portal/client");
-      return;
+    // Try with next_hearing_date; fall back without it if column doesn't exist yet
+    let caseData: any = null;
+    const caseRes = await supabase
+      .from("cases")
+      .select("id, title, description, status, practice_area, created_at, client_id, next_hearing_date")
+      .eq("id", id)
+      .single();
+
+    if (caseRes.error) {
+      const fallbackRes = await supabase
+        .from("cases")
+        .select("id, title, description, status, practice_area, created_at, client_id")
+        .eq("id", id)
+        .single();
+
+      if (fallbackRes.error || fallbackRes.data?.client_id !== user.id) {
+        router.push("/portal/client");
+        return;
+      }
+      caseData = { ...fallbackRes.data, next_hearing_date: null };
+    } else {
+      if (caseRes.data?.client_id !== user.id) {
+        router.push("/portal/client");
+        return;
+      }
+      caseData = caseRes.data;
     }
 
-    setCaseDetails(caseRes.data);
+    setCaseDetails(caseData);
     setDocuments(docsRes.data ?? []);
     setMessages(msgsRes.data ?? []);
     setCaseUpdates(updatesRes.data ?? []);

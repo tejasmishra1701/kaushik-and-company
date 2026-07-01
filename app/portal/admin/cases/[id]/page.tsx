@@ -130,12 +130,7 @@ export default function AdminCaseDetailPage() {
       if (profile?.full_name) setCurrentUserName(profile.full_name);
     }
 
-    const [caseRes, docsRes, msgsRes, updatesRes] = await Promise.all([
-      supabase
-        .from("cases")
-        .select("id, title, description, status, practice_area, created_at, client_id, next_hearing_date, profiles(full_name, email)")
-        .eq("id", id)
-        .single(),
+    const [docsRes, msgsRes, updatesRes] = await Promise.all([
       supabase
         .from("documents")
         .select("id, file_name, file_path, created_at")
@@ -153,12 +148,34 @@ export default function AdminCaseDetailPage() {
         .order("created_at", { ascending: false }),
     ]);
 
+    // Try fetching case with next_hearing_date; fall back without it if the
+    // column hasn't been migrated yet — only redirect on a genuine not-found.
+    let caseData: any = null;
+    const caseRes = await supabase
+      .from("cases")
+      .select("id, title, description, status, practice_area, created_at, client_id, next_hearing_date, profiles(full_name, email)")
+      .eq("id", id)
+      .single();
+
     if (caseRes.error) {
-      router.push("/portal/admin/cases");
-      return;
+      // Retry without next_hearing_date in case migration hasn't run
+      const fallbackRes = await supabase
+        .from("cases")
+        .select("id, title, description, status, practice_area, created_at, client_id, profiles(full_name, email)")
+        .eq("id", id)
+        .single();
+
+      if (fallbackRes.error) {
+        // Genuine not-found or permission error — redirect
+        router.push("/portal/admin/cases");
+        return;
+      }
+      caseData = { ...fallbackRes.data, next_hearing_date: null };
+    } else {
+      caseData = caseRes.data;
     }
 
-    setCaseDetails(caseRes.data as any);
+    setCaseDetails(caseData as any);
     setDocuments(docsRes.data ?? []);
     setMessages(msgsRes.data ?? []);
     setCaseUpdates(updatesRes.data ?? []);

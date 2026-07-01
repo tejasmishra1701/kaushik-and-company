@@ -148,18 +148,29 @@ USING (
 ALTER TABLE public.cases
   ADD COLUMN IF NOT EXISTS next_hearing_date DATE;
 
--- Add case_id to case_updates (link updates to a specific case)
-ALTER TABLE public.case_updates
-  ADD COLUMN IF NOT EXISTS case_id UUID REFERENCES public.cases(id) ON DELETE CASCADE;
+-- Create case_updates table (full definition, safe to re-run)
+CREATE TABLE IF NOT EXISTS public.case_updates (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id      UUID NOT NULL REFERENCES public.cases(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  content      TEXT NOT NULL,
+  update_type  TEXT NOT NULL DEFAULT 'general',
+  posted_by    TEXT NOT NULL DEFAULT 'Admin',
+  hearing_date DATE,
+  court_name   TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- RLS policies for case_updates
 ALTER TABLE public.case_updates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins can do everything on case_updates" ON public.case_updates;
 CREATE POLICY "Admins can do everything on case_updates"
 ON public.case_updates FOR ALL TO authenticated
 USING (public.get_my_role() = 'admin')
 WITH CHECK (public.get_my_role() = 'admin');
 
+DROP POLICY IF EXISTS "Clients can view updates for their cases" ON public.case_updates;
 CREATE POLICY "Clients can view updates for their cases"
 ON public.case_updates FOR SELECT TO authenticated
 USING (
