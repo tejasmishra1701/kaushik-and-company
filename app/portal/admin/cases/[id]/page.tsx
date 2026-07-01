@@ -77,11 +77,21 @@ const UPDATE_TYPES = [
   { value: "urgent", label: "Urgent Notice", icon: IconAlertTriangle, color: "text-red-400" },
 ];
 
+const PRACTICE_AREAS = [
+  "Civil & Property Law",
+  "Corporate & Commercial",
+  "Matrimonial & Family Law",
+  "Criminal Law",
+  "Debt Recovery & Arbitration",
+  "Consumer & Service Matters",
+];
+
 function UpdateIcon({ type }: { type: string }) {
   const found = UPDATE_TYPES.find((t) => t.value === type) ?? UPDATE_TYPES[0];
   const Icon = found.icon;
   return <Icon size={14} className={found.color} />;
 }
+
 
 // ── Main Component ───────────────────────────────────────────────
 export default function AdminCaseDetailPage() {
@@ -115,6 +125,16 @@ export default function AdminCaseDetailPage() {
     court_name: "",
   });
   const [postingUpdate, setPostingUpdate] = useState(false);
+
+  // Edit case details
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    practice_area: "",
+    next_hearing_date: "",
+  });
+
 
   // ── Data fetching ─────────────────────────────────────────────
   const fetchData = async () => {
@@ -301,6 +321,66 @@ export default function AdminCaseDetailPage() {
     if (!error && caseDetails) setCaseDetails({ ...caseDetails, status: newStatus });
   };
 
+  const handleDeleteCase = async () => {
+    if (!confirm("Are you sure you want to permanently delete this case? All documents, messages, updates, and records will be lost forever.")) return;
+
+    // 1. Delete all case documents from Supabase Storage
+    if (documents.length > 0) {
+      const filePaths = documents.map((d) => d.file_path);
+      const { error: storageError } = await supabase.storage
+        .from("case-documents")
+        .remove(filePaths);
+      if (storageError) {
+        console.error("Storage delete error:", storageError.message);
+      }
+    }
+
+    // 2. Delete case from database
+    const { error: dbError } = await supabase
+      .from("cases")
+      .delete()
+      .eq("id", id);
+
+    if (dbError) {
+      alert("Error deleting case: " + dbError.message);
+    } else {
+      router.push("/portal/admin/cases");
+    }
+  };
+
+  const handleUpdateCase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm.title.trim()) return;
+
+    const { error } = await supabase
+      .from("cases")
+      .update({
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        practice_area: editForm.practice_area,
+        next_hearing_date: editForm.next_hearing_date || null,
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert("Error updating case: " + error.message);
+    } else {
+      setCaseDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              title: editForm.title.trim(),
+              description: editForm.description.trim() || null,
+              practice_area: editForm.practice_area,
+              next_hearing_date: editForm.next_hearing_date || null,
+            }
+          : null
+      );
+      setShowEditModal(false);
+    }
+  };
+
+
   const handlePostUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!updateForm.title.trim() || !updateForm.content.trim()) return;
@@ -366,7 +446,28 @@ export default function AdminCaseDetailPage() {
         <button onClick={() => router.push("/portal/admin/cases")} className="flex items-center gap-2 text-xs uppercase tracking-widest text-silver-dim transition-colors hover:text-silver">
           <IconArrowLeft size={14} /> Back to Cases
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            onClick={() => {
+              setEditForm({
+                title: caseDetails.title,
+                description: caseDetails.description || "",
+                practice_area: caseDetails.practice_area,
+                next_hearing_date: caseDetails.next_hearing_date || "",
+              });
+              setShowEditModal(true);
+            }}
+            className="border border-[#1e1e1e] bg-[#111111] px-3 py-1.5 text-xs uppercase tracking-widest text-silver transition-colors hover:border-[#c9a84c] hover:text-white"
+          >
+            Edit Details
+          </button>
+          <button
+            onClick={handleDeleteCase}
+            className="border border-red-950 bg-red-950/20 px-3 py-1.5 text-xs uppercase tracking-widest text-red-400 transition-colors hover:border-red-500 hover:text-white"
+          >
+            Delete Case
+          </button>
+          <div className="hidden sm:block h-5 w-px bg-[#2a2a2a]" />
           <label className="text-xs uppercase tracking-widest text-silver-dim">Status:</label>
           <select value={caseDetails.status} onChange={(e) => updateCaseStatus(e.target.value)} className="border border-[#1e1e1e] bg-[#111111] px-3 py-1.5 text-xs text-silver focus:outline-none focus:border-[#c9a84c]">
             <option value="pending">Pending</option>
@@ -375,6 +476,7 @@ export default function AdminCaseDetailPage() {
           </select>
         </div>
       </div>
+
 
       {/* Case Header */}
       <div className="border border-[#1e1e1e] bg-[#111111]/40 p-6 flex flex-col md:flex-row justify-between gap-6">
@@ -602,7 +704,46 @@ export default function AdminCaseDetailPage() {
             </motion.div>
           </>
         )}
+
+        {/* Modal — Edit Case Details */}
+        {showEditModal && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.96, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 12 }} transition={{ duration: 0.2 }} className="fixed inset-x-0 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 border border-[#2e2e2e] bg-[#111111] p-8 shadow-2xl">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="font-serif text-xl font-normal text-white">Edit Case Details</h2>
+                <button onClick={() => setShowEditModal(false)} className="text-silver-dim hover:text-silver"><IconX size={18} /></button>
+              </div>
+
+              <form onSubmit={handleUpdateCase} className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-silver-dim">Case Title</label>
+                  <input type="text" required value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} className={formInputClasses} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-silver-dim">Practice Area</label>
+                  <select required value={editForm.practice_area} onChange={(e) => setEditForm({ ...editForm, practice_area: e.target.value })} className={formInputClasses}>
+                    {PRACTICE_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-silver-dim">Next Hearing Date (optional)</label>
+                  <input type="date" value={editForm.next_hearing_date} onChange={(e) => setEditForm({ ...editForm, next_hearing_date: e.target.value })} className={formInputClasses} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-silver-dim">Description (optional)</label>
+                  <textarea rows={4} placeholder="Case description…" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className={`${formInputClasses} resize-none`} />
+                </div>
+
+                <button type="submit" className="w-full border border-[#1e1e1e] bg-[#0a0a0a] py-3 text-xs uppercase tracking-widest text-silver transition-all hover:border-[#c9a84c] hover:text-white mt-2">
+                  Save Changes
+                </button>
+              </form>
+            </motion.div>
+          </>
+        )}
       </AnimatePresence>
     </div>
   );
 }
+
