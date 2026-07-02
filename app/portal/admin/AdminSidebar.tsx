@@ -10,12 +10,14 @@ import {
   IconBriefcase,
   IconLogout,
   IconScale,
+  IconMail,
 } from "@tabler/icons-react";
 
 const navItems = [
   { label: "Dashboard", href: "/portal/admin", icon: IconLayoutDashboard },
   { label: "Clients", href: "/portal/admin/clients", icon: IconUsers },
   { label: "Cases", href: "/portal/admin/cases", icon: IconBriefcase },
+  { label: "Enquiries", href: "/portal/admin/enquiries", icon: IconMail },
 ];
 
 export default function AdminSidebar({

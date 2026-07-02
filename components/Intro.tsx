@@ -52,17 +52,32 @@ const splitSubpaths = (d: string): string[] => {
 const SUBPATHS = splitSubpaths(UNION_D);
 
 export default function Intro() {
+  // null = not yet determined (SSR / pre-effect); avoids flash on first visit
   const [phase, setPhase] = useState<
-    "encrypt" | "trace" | "crossfade" | "dark" | "done"
-  >("encrypt");
+    null | "encrypt" | "trace" | "crossfade" | "dark" | "done"
+  >(null);
   const timeouts = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
+    // Already played this session — skip entirely
+    if (sessionStorage.getItem("skc_intro_played")) {
+      setPhase("done");
+      return;
+    }
+
+    // First visit — kick off the animation sequence
+    setPhase("encrypt");
+
     const schedule = (
       time: number,
       targetPhase: "trace" | "crossfade" | "dark" | "done",
     ) => {
-      const t = setTimeout(() => setPhase(targetPhase), time);
+      const t = setTimeout(() => {
+        setPhase(targetPhase);
+        if (targetPhase === "done") {
+          sessionStorage.setItem("skc_intro_played", "1");
+        }
+      }, time);
       timeouts.current.push(t);
     };
 
@@ -79,7 +94,8 @@ export default function Intro() {
 
   const textString = "Welcome to SKC";
 
-  if (phase === "done") return null;
+  // null = waiting for client effect; "done" = finished — render nothing
+  if (phase === null || phase === "done") return null;
 
   const getLogoAnimate = () => {
     if (phase === "crossfade") {

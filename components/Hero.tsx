@@ -11,6 +11,13 @@ export default function Hero() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // If intro already played this session, show hero content immediately
+    if (sessionStorage.getItem("skc_intro_played")) {
+      setMounted(true);
+      return;
+    }
+
+    // First visit — wait for the intro animation to finish (13.4s)
     const t = setTimeout(() => {
       setMounted(true);
     }, 13400);

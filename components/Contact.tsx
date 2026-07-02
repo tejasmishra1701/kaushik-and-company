@@ -15,7 +15,9 @@ export default function Contact() {
     matter: "",
     message: "",
   });
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const getAnimProps = (delay: number) => ({
     initial: { opacity: 0, y: 20 },
@@ -23,10 +25,34 @@ export default function Contact() {
     transition: { duration: 0.6, ease: "easeOut" as const, delay },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
 
   const inputClasses =
     "w-full bg-[#0a0a0a] border border-[#1e1e1e] px-4 py-3 text-silver text-sm font-sans placeholder:text-[#6b6965] focus:outline-none focus:border-[#c9a84c] transition-colors";
@@ -178,11 +204,17 @@ export default function Contact() {
                   />
                   <button
                     type="submit"
-                    className="w-full border border-[#1e1e1e] bg-[#111111] py-3 text-sm uppercase tracking-widest text-silver transition-all duration-300 hover:border-[#c9a84c] hover:text-white"
+                    disabled={submitting}
+                    className="w-full border border-[#1e1e1e] bg-[#111111] py-3 text-sm uppercase tracking-widest text-silver transition-all duration-300 hover:border-[#c9a84c] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Send Enquiry &rarr;
+                    {submitting ? "Sending…" : "Send Enquiry →"}
                   </button>
-                  <p className="mt-3 text-center text-xs text-silver-dim">
+                  {error && (
+                    <div className="border border-red-900/40 bg-red-950/20 px-4 py-3 text-xs text-red-400">
+                      {error}
+                    </div>
+                  )}
+                  <p className="mt-1 text-center text-xs text-silver-dim">
                     This form is for general enquiries only and does not
                     constitute legal advice.
                   </p>

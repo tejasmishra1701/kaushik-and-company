@@ -184,3 +184,34 @@ USING (
 -- Enable realtime for messages and case_updates
 ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.case_updates;
+
+-- ================================================================
+-- ENQUIRIES TABLE — Public contact form submissions
+-- Run this in the Supabase SQL Editor
+-- ================================================================
+
+CREATE TABLE IF NOT EXISTS public.enquiries (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       TEXT NOT NULL,
+  phone      TEXT NOT NULL,
+  matter     TEXT NOT NULL,
+  message    TEXT,
+  status     TEXT NOT NULL DEFAULT 'new',   -- 'new' | 'read' | 'archived'
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.enquiries ENABLE ROW LEVEL SECURITY;
+
+-- Anyone (including unauthenticated visitors) can submit an enquiry
+DROP POLICY IF EXISTS "Public can submit enquiries" ON public.enquiries;
+CREATE POLICY "Public can submit enquiries"
+ON public.enquiries FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+-- Only admins can read / manage enquiries
+DROP POLICY IF EXISTS "Admins can manage enquiries" ON public.enquiries;
+CREATE POLICY "Admins can manage enquiries"
+ON public.enquiries FOR ALL TO authenticated
+USING (public.get_my_role() = 'admin')
+WITH CHECK (public.get_my_role() = 'admin');
