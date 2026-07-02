@@ -91,12 +91,12 @@ export default function Contact() {
               </div>
               <div>
                 <a
-                  href="https://wa.me/911242222343"
+                  href="https://wa.me/9873343404"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-sm text-silver transition-colors hover:text-white"
                 >
-                  +91-124-2222343
+                  +91-9873343404
                 </a>
                 <div className="mt-1 text-xs text-silver-dim">
                   (click to open)
